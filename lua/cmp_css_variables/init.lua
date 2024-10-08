@@ -8,15 +8,28 @@ function source.new()
 end
 
 function source.is_available()
-	return vim.g.css_variables_files
-		and (
-			vim.bo.filetype == "scss"
-			or vim.bo.filetype == "sass"
-			or vim.bo.filetype == "css"
-			or vim.bo.filetype == "less"
-		)
-end
+  -- Ensure vim.g.cmp_css_variables is initialized as a table if it doesn't exist
+  vim.g.cmp_css_variables = vim.g.cmp_css_variables or {}
 
+  local replace_filetypes = vim.g.cmp_css_variables.replace_filetypes or false
+
+  -- Default filetypes
+  local default_filetypes = { "scss", "sass", "css", "less", "vue", "javascriptreact", "typescriptreact", "svelte" }
+
+  -- filetypes to track
+  local tracked_filetypes;
+
+  if replace_filetypes then
+    tracked_filetypes = vim.g.cmp_css_variables.filetypes or {}
+  else
+    -- Create a copy of the default filetypes, then merge additional filetypes
+    tracked_filetypes = default_filetypes
+    if vim.g.cmp_css_variables.filetypes then
+      vim.list_extend(tracked_filetypes, vim.g.cmp_css_variables.filetypes)
+    end
+  end
+  return vim.g.cmp_css_variables.files and vim.tbl_contains(tracked_filetypes, vim.bo.filetype)
+end
 -- function source.get_keyword_pattern()
 -- 	return [[\%(\$_\w*\|\%(\w\|\.\)*\)]]
 -- end
@@ -34,8 +47,8 @@ function source.complete(self, _, callback)
 	local items = {}
 
 	if not self.cache[bufnr] then
-		if vim.g.css_variables_files then
-			items = utils.get_css_variables(vim.g.css_variables_files)
+		if vim.g.cmp_css_variables.files then
+			items = utils.get_css_variables(vim.g.cmp_css_variables.files)
 		end
 
 		if type(items) ~= "table" then

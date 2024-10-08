@@ -47,6 +47,8 @@ function M.get_css_variables(files)
 		end
 	end
 
+  print(vim.inspect(variables))
+
 	return variables
 end
 
